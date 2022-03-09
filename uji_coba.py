@@ -1,4 +1,4 @@
-print("Ok")
+rint("Ok")
 print("WOW")
 print("OS")
 print("p")
