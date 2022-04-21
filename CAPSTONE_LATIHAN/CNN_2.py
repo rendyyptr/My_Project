@@ -61,3 +61,21 @@ def buat_model_train(model_savednya):
 
 pre_train = buat_model_train(model_savednya)
 pre_train.summary()
+last_layer = pre_train.get_layer('mixed7')
+last_output = last_layer.output
+# mixed7 bisa diganti apa aja
+x = tf.keras.layers.Flatten()(last_output)
+x = tf.keras.layers.Dense(1024, activation='relu')(x)
+x = tf.keras.layers.Droput(0.2)(x)
+x = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+model = tf.keras.Model(pre_train.input, x)
+model.summary()
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-4),
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+history = model.fit(train_generator,
+                    validation_data = test_generator,
+                    steps_per_epoch = 100,
+                    epochs = 20,
+                    validation_steps = 50,
+                    verbose = 2)
