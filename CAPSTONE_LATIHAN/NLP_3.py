@@ -19,8 +19,10 @@ model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
 model.summary()
 # ---------------------------------------------------------------------------------------------
 model.compile(optimizer=tf.keras.optimizers.Adam, loss='binary_crossentropy', metrics=['accuracy'])
-model.fit(train_dataset, epochs=10, validation_data=test_dataset)
+history = model.fit(train_dataset, epochs=10, validation_data=test_dataset)
 # ---------------------------------------------------------------------------------------------
+
+
 def plot_graphs(history, string):
     plt.plot(history.history[string])
     plt.plot(history.history['val_'+string])
@@ -28,5 +30,7 @@ def plot_graphs(history, string):
     plt.ylabel(string)
     plt.legend(['val_'+string])
     plt.show()
+
+
 plot_graphs(history, 'accuracy')
 plot_graphs(history, 'loss')
