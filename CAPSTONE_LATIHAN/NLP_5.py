@@ -137,4 +137,4 @@ for i in range(num):
        if predicted != 0:
               hasil = tokenizer.index_word[predicted]
               teks = " "+hasil
-print(hasil)
+print(teks)
