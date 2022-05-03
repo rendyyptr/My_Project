@@ -3,6 +3,8 @@ import numpy as np
 from tensorflow import keras
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
+from keras.layers import LSTM
+import matplotlib.pyplot as plt
 data = 'In the town of Athy one Jeremy Lanigan \n ' \
        'Battered away til he hadnt a pound. \n' \
        'His father died and made him a man again \n ' \
@@ -67,3 +69,72 @@ data = 'In the town of Athy one Jeremy Lanigan \n ' \
        'They squeezed up his pipes, bellows, chanters and all. \n' \
        'The girls, in their ribbons, they got all entangled \n' \
        'And that put an end to Lanigans Ball.'
+corpus = data.lower().split('\n')
+tokenizer = Tokenizer()
+# Generate word index in dictionary
+tokenizer.fit_on_texts(corpus)
+# Total kata di dictionary
+total_words = len(tokenizer.word_index) + 1
+print(tokenizer.word_index)
+print(total_words)
+# ------------------------------------------------------------------------------------------
+input_sequence = []
+for words in corpus:
+       # list kalimat terbaru
+       list_token = tokenizer.texts_to_sequences([words])[0]
+       for i in range(1, len(list_token)):
+              # Generate subphrase
+              n_sequence = list_token[:i+1]
+              input_sequence.append(n_sequence)
+# menampilkan mana kalimat yang paling panjang didalam input_sequence
+max_sequence = max([len(x) for x in input_sequence])
+# padding all sequences
+input_sequence = np.array(pad_sequences(input_sequence, maxlen=max_sequence, padding='pre'))
+# Buat input dan labels
+input, labels = input_sequence[:,:-1], input_sequence[:,:-1]
+# konversi labels ke one hot array
+ys = tf.keras.utils.to_categorical(labels, num_classes=total_words)
+# -----------------------------------------------------------------------------------------------
+sentence = corpus[2].split()
+list_word_index = []
+for word in sentence:
+       list_word_index.append(tokenizer.word_index[word])
+print(list_word_index)
+# -----------------------------------------------------------------------------------------------
+elem_number = 20
+print(f'token list : {input[elem_number]}')
+print(f'decoded to text : {tokenizer.sequences_to_texts([input[elem_number]])}')
+# ----------------------------------------------------------------------------------------------
+# Ini labelnya
+print(f'token list label : {ys[elem_number]}')
+print(f'index of label: {np.argmax(ys[elem_number])}')
+# ----------------------------------------------------------------------------------------------
+# Buat modelnya
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Embedding(total_words, 64, input_length=max_sequence-1))
+model.add(tf.keras.layers.Bidirectional(LSTM(20)))
+model.add(tf.keras.layers.Dense(total_words, activation='softmax'))
+model.compile(loss='categotical_crossentrpy', optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
+history = model.fit(input, ys, epochs=500)
+def buat_grafik(history, string):
+       plt.plot(history.history[string])
+       plt.xlabel('Epochs')
+       plt.ylabel(string)
+       plt.show()
+buat_grafik(history, 'accuracy')
+# ----------------------------------------------------------------------------------------------------
+teks = 'Laurence went to Dublin'
+# Define total words to predict
+num = 100
+for i in range(num):
+       # convert teks ke token sequence
+       token_list = tokenizer.texts_to_sequences([teks])[0]
+       # padding
+       token_list = pad_sequences([token_list], maxlen=max_sequence-1, padding='pre')
+       probabilitas = model.predict(token_list)
+       # Dapatkan probabilitas tertingggi
+       predicted = np.argmax(probabilitas, axis=-1)[0]
+       if predicted != 0:
+              hasil = tokenizer.index_word[predicted]
+              teks = " "+hasil
+print(hasil)
